@@ -117,7 +117,7 @@ public class Modo1 {
         }
         
         // Crear nombre de archivo único con marca de tiempo
-        String nombreArchivo = "salida.txt";
+        String nombreArchivo = "entrada.txt";
         
         // Crear archivo en la carpeta data
         String rutaArchivo = "data/" + nombreArchivo;

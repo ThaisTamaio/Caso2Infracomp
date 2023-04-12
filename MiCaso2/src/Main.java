@@ -7,7 +7,7 @@ import java.util.List;
 public class Main {
     public static void main(String[] args) throws Exception {
 
-        List<Integer> parametros = leerArchivo("archivo.txt");
+        List<Integer> parametros = leerArchivo("inicial.txt");
 
         Matriz matrizA = new Matriz(parametros.get(1), parametros.get(2), parametros.get(3));
         Matriz matrizB = new Matriz(parametros.get(1), parametros.get(2), parametros.get(3));
