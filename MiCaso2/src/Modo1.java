@@ -1,9 +1,6 @@
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -57,10 +54,16 @@ public class Modo1 {
         int páginasPorMatriz = (tamañoMatriz + tamañoPagina - 1) / tamañoPagina;
         int totalReferencias = NF * NC * 3;
         StringBuilder resultado = new StringBuilder();
+
         resultado.append("TP=").append(TP).append("\n");
         resultado.append("NF=").append(NF).append("\n");
         resultado.append("NC=").append(NC).append("\n");
         resultado.append("NR=").append(totalReferencias).append("\n");
+        
+        List<String> listaMatrizA = new ArrayList<String>();
+        List<String> listaMatrizB = new ArrayList<String>();
+        List<String> listaMatrizC = new ArrayList<String>();
+        
         for (int k = 0; k < 3; k++) {
             char matriz = (char) ('A' + k);
             for (int i = 0; i < NF; i++) {
@@ -71,11 +74,31 @@ public class Modo1 {
                     int desplazamientoColumna = j % (TP / NF);
                     int paginaVirtual = paginaVirtualFila * MP + paginaVirtualColumna + k * páginasPorMatriz;
                     int desplazamiento = (desplazamientoFila + desplazamientoColumna) * TE;
-                    resultado.append("[").append(matriz).append("-").append(i).append("-").append(j).append("],").append(paginaVirtual).append(",").append(desplazamiento).append("\n");
+                    String referencia = "[" + matriz + "-" + i + "-" + j + "]," + paginaVirtual + "," + desplazamiento + "\n";
+                    
+                    // Agregar referencia a la lista correspondiente
+                    switch(matriz) {
+                        case 'A':
+                            listaMatrizA.add(referencia);
+                            break;
+                        case 'B':
+                            listaMatrizB.add(referencia);
+                            break;
+                        case 'C':
+                            listaMatrizC.add(referencia);
+                            break;
+                    }
                 }
             }
         }
-    
+
+        for (int i = 0; i < listaMatrizA.size(); i++) 
+        {
+            resultado.append(listaMatrizA.get(i));
+            resultado.append(listaMatrizB.get(i));
+            resultado.append(listaMatrizC.get(i));
+        }
+        
         // Crear nombre de archivo único con marca de tiempo
         LocalDateTime dateTime = LocalDateTime.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
@@ -84,7 +107,7 @@ public class Modo1 {
         // Crear archivo en la carpeta data
         String rutaArchivo = "data/" + nombreArchivo;
         File archivoSalida = new File(rutaArchivo);
-    
+        
         // Guardar resultados en archivo de texto
         try (PrintWriter out = new PrintWriter(new FileWriter(archivoSalida))) {
             out.print(resultado.toString());
@@ -92,5 +115,4 @@ public class Modo1 {
             System.err.println("Error al guardar archivo: " + e.getMessage());
         }
     }
-
 }

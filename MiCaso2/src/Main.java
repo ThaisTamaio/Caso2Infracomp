@@ -2,7 +2,6 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 public class Main {
@@ -16,16 +15,9 @@ public class Main {
 
         Modo1 modo1 = new Modo1(parametros.get(0), parametros.get(4), parametros.get(1), parametros.get(2), parametros.get(3), matrizA, matrizB, matrizC);
 
-        System.out.println(parametros.get(0));
-        System.out.println(parametros.get(1));
-        System.out.println(parametros.get(2));
-        System.out.println(parametros.get(3));
-        System.out.println(parametros.get(4));
-
         modo1.generarMatricesAleatorias();
         modo1.sumarMatrices(matrizA , matrizB);
 
-        System.out.println("Paso 1");
         modo1.generarReferenciasDePagina();
     }
 
