@@ -4,8 +4,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 public class Modo1 {
 
@@ -36,47 +34,65 @@ public class Modo1 {
 
     public Matriz sumarMatrices(Matriz matrizA, Matriz matrizB)
     {
+        // Crear una nueva matriz para almacenar el resultado de la suma
         Matriz matrizC = new Matriz (NF, NC, TE);
-
-            for(int i = 0; i < NF; i++){
-                for(int j = 0; j < NC; j++)
-                {
-                    matrizC.getMatriz() [i][j] = matrizA.getMatriz()[i][j] + matrizB.getMatriz()[i][j];
-                }
+    
+        // Recorrer las filas y columnas de las matrices de entrada
+        for(int i = 0; i < NF; i++){
+            for(int j = 0; j < NC; j++)
+            {
+                // Sumar los elementos correspondientes de las dos matrices de entrada
+                matrizC.getMatriz() [i][j] = matrizA.getMatriz()[i][j] + matrizB.getMatriz()[i][j];
             }
-
+        }
+    
+        // Devolver la matriz resultante
         return matrizC;
-    }
+    }    
 
     public void generarReferenciasDePagina() {
+        // Calcular tamaño de página y de matriz
         int tamañoPagina = TP * TE;
         int tamañoMatriz = NF * NC * TE;
+        // Calcular cantidad de páginas que ocupa una matriz completa
         int páginasPorMatriz = (tamañoMatriz + tamañoPagina - 1) / tamañoPagina;
+        // Calcular total de referencias a generar
         int totalReferencias = NF * NC * 3;
+        // Crear objeto StringBuilder para almacenar el resultado
         StringBuilder resultado = new StringBuilder();
-
+    
+        // Agregar información básica al resultado
         resultado.append("TP=").append(TP).append("\n");
         resultado.append("NF=").append(NF).append("\n");
         resultado.append("NC=").append(NC).append("\n");
         resultado.append("NR=").append(totalReferencias).append("\n");
         
+        // Crear listas para almacenar referencias de cada matriz
         List<String> listaMatrizA = new ArrayList<String>();
         List<String> listaMatrizB = new ArrayList<String>();
         List<String> listaMatrizC = new ArrayList<String>();
         
+        // Iterar sobre cada matriz y cada elemento
         for (int k = 0; k < 3; k++) {
+            // Asignar letra a la matriz
             char matriz = (char) ('A' + k);
+            // Iterar sobre cada fila de la matriz
             for (int i = 0; i < NF; i++) {
+                // Calcular número de página virtual y desplazamiento de la fila
                 int paginaVirtualFila = i / (TP / NC);
                 int desplazamientoFila = (i % (TP / NC)) * NC;
+                // Iterar sobre cada columna de la matriz
                 for (int j = 0; j < NC; j++) {
+                    // Calcular número de página virtual y desplazamiento de la columna
                     int paginaVirtualColumna = j / (TP / NF);
                     int desplazamientoColumna = j % (TP / NF);
+                    // Calcular número de página virtual y desplazamiento de la referencia
                     int paginaVirtual = paginaVirtualFila * MP + paginaVirtualColumna + k * páginasPorMatriz;
                     int desplazamiento = (desplazamientoFila + desplazamientoColumna) * TE;
+                    // Crear cadena de referencia con formato "[Matriz-Fila-Columna],PaginaVirtual,Desplazamiento"
                     String referencia = "[" + matriz + "-" + i + "-" + j + "]," + paginaVirtual + "," + desplazamiento + "\n";
                     
-                    // Agregar referencia a la lista correspondiente
+                    // Agregar referencia a la lista correspondiente según la matriz
                     switch(matriz) {
                         case 'A':
                             listaMatrizA.add(referencia);
@@ -91,7 +107,8 @@ public class Modo1 {
                 }
             }
         }
-
+    
+        // Agregar las referencias de cada matriz al resultado
         for (int i = 0; i < listaMatrizA.size(); i++) 
         {
             resultado.append(listaMatrizA.get(i));
@@ -100,9 +117,7 @@ public class Modo1 {
         }
         
         // Crear nombre de archivo único con marca de tiempo
-        LocalDateTime dateTime = LocalDateTime.now();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
-        String nombreArchivo = "salida_" + dateTime.format(formatter) + ".txt";
+        String nombreArchivo = "salida.txt";
         
         // Crear archivo en la carpeta data
         String rutaArchivo = "data/" + nombreArchivo;
