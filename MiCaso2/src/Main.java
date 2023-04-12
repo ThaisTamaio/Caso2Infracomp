@@ -25,10 +25,8 @@ public class Main {
         modo1.generarMatricesAleatorias();
         modo1.sumarMatrices(matrizA , matrizB);
 
-        Integer tamPaginaMatriz = modo1.calcularTamPaginaMatriz();
-        List<Integer> referencias = modo1.calcularReferenciasPagina(tamPaginaMatriz);
-        HashMap<Integer, Integer> calcularTablaPaginas = modo1.calcularTablaPaginas(referencias);
-        modo1.generarArchivoSalida(calcularTablaPaginas, referencias, parametros.get(0), matrizA);
+        System.out.println("Paso 1");
+        modo1.generarReferenciasDePagina();
     }
 
     public static List<Integer> leerArchivo(String filename) throws IOException {
