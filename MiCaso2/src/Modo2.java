@@ -9,10 +9,11 @@ public class Modo2 {
     private int NF;
     private int NC;
     private int NR;
+    private int MP;
     private List<Referencia> referencias;
 
     public void leerArchivo() throws IOException {
-        BufferedReader br = new BufferedReader(new FileReader("entrada.txt"));
+        BufferedReader br = new BufferedReader(new FileReader("./data/entrada.txt"));
         String linea = br.readLine();
 
         // Leer los valores de TP, NF, NC y NR
@@ -57,9 +58,8 @@ public class Modo2 {
     }
 
     public ArrayList<Integer> crearListaMarcosPagina() {
-        int numMarcosPagina = (int) Math.ceil((double) NR / (TP * NF * NC));
-        ArrayList<Integer> listaMarcosPagina = new ArrayList<>(numMarcosPagina);
-        for (int i = 0; i < numMarcosPagina; i++) {
+        ArrayList<Integer> listaMarcosPagina = new ArrayList<>(MP);
+        for (int i = 0; i < MP; i++) {
             listaMarcosPagina.add(-1); // -1 indica que el marco de página está vacío
         }
         return listaMarcosPagina;

@@ -1,5 +1,3 @@
-import java.util.ArrayList;
-import java.util.List;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -12,108 +10,53 @@ public class Modo1 {
     private Integer NF; // Número de filas de la matriz
     private Integer NC; // Número de columnas de la matriz
     private Integer TE; // Tamaño de los elementos de la matriz
-    Matriz matrizA; // Creación de la matriz A
-    Matriz matrizB; // Creación de la matriz B
-    Matriz matrizC; // Creación de la matriz B
 
-    public Modo1(Integer TP, Integer MP, Integer NF, Integer NC, Integer TE, Matriz MatrizA, Matriz MatrizB, Matriz MatrizC) {
+    public Modo1(Integer TP, Integer MP, Integer NF, Integer NC, Integer TE) {
         this.TP = TP;
         this.MP = MP;
         this.NF = NF;
         this.NC = NC;
         this.TE = TE;
-        this.matrizA = MatrizA;
-        this.matrizB = MatrizB;
-        this.matrizC = MatrizC;
     }
-
-    public void generarMatricesAleatorias() { // Método para generar las matrices A y B aleatorias
-        matrizA.generarMatrizAleatoria(); // Genera la matriz A aleatoria
-        matrizB.generarMatrizAleatoria(); // Genera la matriz B aleatoria
-    }
-
-    public Matriz sumarMatrices(Matriz matrizA, Matriz matrizB)
-    {
-        // Crear una nueva matriz para almacenar el resultado de la suma
-        Matriz matrizC = new Matriz (NF, NC, TE);
-    
-        // Recorrer las filas y columnas de las matrices de entrada
-        for(int i = 0; i < NF; i++){
-            for(int j = 0; j < NC; j++)
-            {
-                // Sumar los elementos correspondientes de las dos matrices de entrada
-                matrizC.getMatriz() [i][j] = matrizA.getMatriz()[i][j] + matrizB.getMatriz()[i][j];
-            }
-        }
-    
-        // Devolver la matriz resultante
-        return matrizC;
-    }    
 
     public void generarReferenciasDePagina() {
-        // Calcular tamaño de página y de matriz
-        int tamañoPagina = TP * TE;
-        int tamañoMatriz = NF * NC * TE;
-        // Calcular cantidad de páginas que ocupa una matriz completa
-        int páginasPorMatriz = (tamañoMatriz + tamañoPagina - 1) / tamañoPagina;
         // Calcular total de referencias a generar
-        int totalReferencias = NF * NC * 3;
+        int totalReferencias = NF * NC * 3; // Se calcula el total de referencias que se generarán multiplicando el número de filas por el número de columnas por 3.
+        int[] numPaginas = new int[totalReferencias]; // Se crea un arreglo para almacenar los números de página de cada referencia.
+        int[] posiciones = new int[totalReferencias]; // Se crea un arreglo para almacenar las posiciones de cada referencia en la página.
         // Crear objeto StringBuilder para almacenar el resultado
-        StringBuilder resultado = new StringBuilder();
+        StringBuilder resultado = new StringBuilder(); // Se crea un objeto StringBuilder para almacenar las referencias de página generadas.
     
         // Agregar información básica al resultado
-        resultado.append("TP=").append(TP).append("\n");
-        resultado.append("NF=").append(NF).append("\n");
-        resultado.append("NC=").append(NC).append("\n");
-        resultado.append("NR=").append(totalReferencias).append("\n");
-        
-        // Crear listas para almacenar referencias de cada matriz
-        List<String> listaMatrizA = new ArrayList<String>();
-        List<String> listaMatrizB = new ArrayList<String>();
-        List<String> listaMatrizC = new ArrayList<String>();
-        
-        // Iterar sobre cada matriz y cada elemento
-        for (int k = 0; k < 3; k++) {
-            // Asignar letra a la matriz
-            char matriz = (char) ('A' + k);
-            // Iterar sobre cada fila de la matriz
-            for (int i = 0; i < NF; i++) {
-                // Calcular número de página virtual y desplazamiento de la fila
-                int paginaVirtualFila = i / (TP / NC);
-                int desplazamientoFila = (i % (TP / NC)) * NC;
-                // Iterar sobre cada columna de la matriz
-                for (int j = 0; j < NC; j++) {
-                    // Calcular número de página virtual y desplazamiento de la columna
-                    int paginaVirtualColumna = j / (TP / NF);
-                    int desplazamientoColumna = j % (TP / NF);
-                    // Calcular número de página virtual y desplazamiento de la referencia
-                    int paginaVirtual = paginaVirtualFila * MP + paginaVirtualColumna + k * páginasPorMatriz;
-                    int desplazamiento = (desplazamientoFila + desplazamientoColumna) * TE;
-                    // Crear cadena de referencia con formato "[Matriz-Fila-Columna],PaginaVirtual,Desplazamiento"
-                    String referencia = "[" + matriz + "-" + i + "-" + j + "]," + paginaVirtual + "," + desplazamiento + "\n";
-                    
-                    // Agregar referencia a la lista correspondiente según la matriz
-                    switch(matriz) {
-                        case 'A':
-                            listaMatrizA.add(referencia);
-                            break;
-                        case 'B':
-                            listaMatrizB.add(referencia);
-                            break;
-                        case 'C':
-                            listaMatrizC.add(referencia);
-                            break;
-                    }
+        resultado.append("TP=").append(TP).append("\n"); // Se agrega el tamaño de página al resultado.
+        resultado.append("NF=").append(NF).append("\n"); // Se agrega el número de filas al resultado.
+        resultado.append("NC=").append(NC).append("\n"); // Se agrega el número de columnas al resultado.
+        resultado.append("NR=").append(totalReferencias).append("\n"); // Se agrega el número total de referencias al resultado.
+
+        // Generar las referencias de página para cada elemento de la matriz.
+        for (int i = 0; i < NF; i++) {
+            for (int j = 0; j < NC; j++) {
+                for (int k = 0; k < 3; k++) {
+                    // Se calcula la posición de la referencia en la matriz.
+                    int posicion = (i * NC + j) * TE + k * NF * NC * TE;
+                    // Se calcula el número de página de la referencia.
+                    int numPagina = posicion / TP;
+                    // Se calcula el desplazamiento de la referencia en la página.
+                    int desplazamiento = posicion % TP;
+                    // Se almacena el número de página y la posición de la referencia en los arreglos correspondientes.
+                    numPaginas[i * NC * 3 + j * 3 + k] = numPagina;
+                    posiciones[i * NC * 3 + j * 3 + k] = desplazamiento;
                 }
             }
         }
-    
-        // Agregar las referencias de cada matriz al resultado
-        for (int i = 0; i < listaMatrizA.size(); i++) 
+
+        // Agregar las referencias de cada matriz al resultado.
+        for (int i = 0; i < totalReferencias; i++) 
         {
-            resultado.append(listaMatrizA.get(i));
-            resultado.append(listaMatrizB.get(i));
-            resultado.append(listaMatrizC.get(i));
+            // Se agrega al resultado la referencia de página generada en el formato "[M-N-P],Q,R",
+            // donde M es la matriz a la que pertenece la referencia (A, B o C), N es el índice de fila,
+            // P es el índice de columna, Q es el número de página y R es la posición en la página.
+            resultado.append(String.format("[%c-%d-%d],%d,%d\n", (char) ('A' + i % 3), i / (NF * NC), i / 3 % NF, numPaginas[i], posiciones[i]));
         }
         
         // Crear nombre de archivo único con marca de tiempo

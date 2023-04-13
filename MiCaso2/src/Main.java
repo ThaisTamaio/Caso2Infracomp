@@ -7,18 +7,18 @@ import java.util.List;
 public class Main {
     public static void main(String[] args) throws Exception {
 
+        //Modo 1
+
         List<Integer> parametros = leerArchivo("inicial.txt");
 
-        Matriz matrizA = new Matriz(parametros.get(1), parametros.get(2), parametros.get(3));
-        Matriz matrizB = new Matriz(parametros.get(1), parametros.get(2), parametros.get(3));
-        Matriz matrizC = new Matriz(parametros.get(1), parametros.get(2), parametros.get(3));
-
-        Modo1 modo1 = new Modo1(parametros.get(0), parametros.get(4), parametros.get(1), parametros.get(2), parametros.get(3), matrizA, matrizB, matrizC);
-
-        modo1.generarMatricesAleatorias();
-        modo1.sumarMatrices(matrizA , matrizB);
+        Modo1 modo1 = new Modo1(parametros.get(0), parametros.get(4), parametros.get(1), parametros.get(2), parametros.get(3));
 
         modo1.generarReferenciasDePagina();
+
+        //Modo 2
+
+        Modo2 modo2 = new Modo2();
+
     }
 
     public static List<Integer> leerArchivo(String filename) throws IOException {

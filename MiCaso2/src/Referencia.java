@@ -1,7 +1,7 @@
 public class Referencia {
     private String matriz;
-    private int paginaVirtual;
-    private int desplazamiento;
+    private int paginaVirtual; // número de página virtual
+    private int desplazamiento; // desplazamiento dentro de la página
 
     public Referencia(String matriz, int paginaVirtual, int desplazamiento) {
         this.matriz = matriz;
