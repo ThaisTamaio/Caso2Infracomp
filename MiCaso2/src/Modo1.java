@@ -6,14 +6,12 @@ import java.io.PrintWriter;
 public class Modo1 {
 
     private Integer TP; // Tamaño de la página en bytes
-    private Integer MP; // Número de marcos de página disponibles
     private Integer NF; // Número de filas de la matriz
     private Integer NC; // Número de columnas de la matriz
     private Integer TE; // Tamaño de los elementos de la matriz
 
-    public Modo1(Integer TP, Integer MP, Integer NF, Integer NC, Integer TE) {
+    public Modo1(Integer TP, Integer NF, Integer NC, Integer TE) {
         this.TP = TP;
-        this.MP = MP;
         this.NF = NF;
         this.NC = NC;
         this.TE = TE;

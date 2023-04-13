@@ -9,19 +9,21 @@ public class Main {
 
         //Modo 1
 
-        List<Integer> parametros = leerArchivo("inicial.txt");
+        List<Integer> parametros = leerArchivoModo1("inicial.txt");
 
-        Modo1 modo1 = new Modo1(parametros.get(0), parametros.get(4), parametros.get(1), parametros.get(2), parametros.get(3));
+        Modo1 modo1 = new Modo1(parametros.get(0), parametros.get(1), parametros.get(2), parametros.get(3));
 
         modo1.generarReferenciasDePagina();
 
         //Modo 2
 
-        Modo2 modo2 = new Modo2();
+        List<Integer> paginas = leerArchivoModo2("entrada.txt");
+
+        Modo2 modo2 = new Modo2(parametros.get(4), paginas);
 
     }
 
-    public static List<Integer> leerArchivo(String filename) throws IOException {
+    public static List<Integer> leerArchivoModo1(String filename) throws IOException {
         List<Integer> parametros = new ArrayList<>();
         BufferedReader reader = new BufferedReader(new FileReader("./data/" + filename));
         String line;
@@ -41,5 +43,21 @@ public class Main {
         reader.close();
         return parametros;
     }
+
+    public static List<Integer> leerArchivoModo2(String filename) throws IOException {
+        List<Integer> paginas = new ArrayList<>();
+        BufferedReader reader = new BufferedReader(new FileReader("./data/" + filename));
+        String linea;
+        while ((linea = reader.readLine()) != null) {
+            if (!linea.startsWith("TP") && !linea.startsWith("NF") && !linea.startsWith("NC") && !linea.startsWith("NR")) {
+                String[] partes = linea.split(",");
+                int numPagina = Integer.parseInt(partes[1]);
+                paginas.add(numPagina);
+            }
+        }
+        reader.close();
+        return paginas;
+    }
+
     
 }
