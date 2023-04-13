@@ -21,6 +21,10 @@ public class Main {
 
         Modo2 modo2 = new Modo2(parametros.get(4), paginas);
 
+        Integer fallosPagina = modo2.ejecutarModo2();
+
+        System.out.println("Fallos de página: " + fallosPagina);
+
     }
 
     public static List<Integer> leerArchivoModo1(String filename) throws IOException {
