@@ -64,10 +64,5 @@ public class Modo2 {
         }
         return listaMarcosPagina;
     }
-
-    public void ejecutarEnvejecimiento(Actualizador actualizador) {
-        Envejecimiento envejecimientoThread = new Envejecimiento(actualizador, referencias);
-        envejecimientoThread.start();
-    }
     
 }

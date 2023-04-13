@@ -1,106 +1,142 @@
 import java.util.ArrayList;
 import java.util.List;
 
-public class Actualizador extends Thread {
+public class Actualizador extends Thread{
+
+    private List<Referencia> referencias;
     private int[][] tablaPaginas;
     private ArrayList<Integer> listaMarcosPagina;
-    private List<Referencia> referencias;
-    private int indiceProximaReferencia;
-    private int fallasPagina;
+    private int punteroReferencia = 0;
+    private int punteroMarcoPagina = 0;
+    private int fallosPagina = 0;
+    private Thread threadEnvejecimiento;
+    private boolean envejecimientoActivo;
 
-    public Actualizador(int[][] tablaPaginas, ArrayList<Integer> listaMarcosPagina, List<Referencia> referencias) {
+    public Actualizador(List<Referencia> referencias, int[][] tablaPaginas,
+            ArrayList<Integer> listaMarcosPagina) {
+        this.referencias = referencias;
         this.tablaPaginas = tablaPaginas;
         this.listaMarcosPagina = listaMarcosPagina;
-        this.referencias = referencias;
-        this.indiceProximaReferencia = 0;
-        this.fallasPagina = 0;
+        this.envejecimientoActivo = true;
     }
-    
-    @Override
-    public void run() {
-        while (indiceProximaReferencia < referencias.size()) {
-            Referencia referencia = referencias.get(indiceProximaReferencia);
-            if (obtenerMarcoPagina(referencia.getPaginaVirtual()) == -1) {
-                fallasPagina++;
+
+    public void run(Integer TP) {
+        threadEnvejecimiento = new Thread(new AlgoritmoEnvejecimiento(tablaPaginas, listaMarcosPagina));
+        threadEnvejecimiento.start();
+
+        while (punteroReferencia < referencias.size()) {
+            // Obtener la siguiente referencia
+            Referencia referencia = referencias.get(punteroReferencia);
+            punteroReferencia++;
+
+            // Determinar si la página virtual correspondiente está en memoria real
+            int marcoPagina = tablaPaginas[referencia.getPaginaVirtual()][referencia.getDesplazamiento() / TP];
+            if (marcoPagina == -1) {
+                // Se produce una falla de página, seleccionar un marco de página en memoria real para reemplazar
+                fallosPagina++;
+                try {
+                    marcoPagina = seleccionarMarcoPagina(referencia.getPaginaVirtual());
+                } catch (Exception e) { e.printStackTrace();}
+                // Cargar la nueva página en el marco de página seleccionado
+                cargarPagina(marcoPagina, referencia.getPaginaVirtual());
             }
-            actualizar(referencia);
-            indiceProximaReferencia++;
+            // Actualizar el bit de referencia de la entrada en la tabla de páginas
+            tablaPaginas[referencia.getPaginaVirtual()][referencia.getDesplazamiento() / TP] |= 0x80;
+
+            // Esperar 2 milisegundos antes de procesar la siguiente referencia
+            try {
+                Thread.sleep(2);
+            } catch (InterruptedException e) {
+                System.out.println("Error en thread de actualización de tabla de páginas: " + e.getMessage());
+            }
+        }
+        // Detener el thread de envejecimiento al terminar la actualización de la tabla de páginas
+        envejecimientoActivo = false;
+        try {
+            threadEnvejecimiento.join();
+        } catch (InterruptedException e) {
+            System.out.println("Error al detener el thread de envejecimiento: " + e.getMessage());
         }
     }
+
+    private int seleccionarMarcoPagina(int paginaVirtual) throws Exception {
+        ArrayList<Integer> marcosPagina = new ArrayList<>();
+        synchronized (tablaPaginas) {
+            for (int i = 0; i < tablaPaginas[paginaVirtual].length; i++) {
+                if (tablaPaginas[paginaVirtual][i] == -1) {
+                    return listaMarcosPagina.get(i);
+                }
+                marcosPagina.add(tablaPaginas[paginaVirtual][i]);
+            }
+        }
     
-    private int obtenerMarcoPagina(int paginaVirtual) {
         int marcoPagina = -1;
-        for (int i = 0; i < listaMarcosPagina.size(); i++) {
-            if (listaMarcosPagina.get(i) == paginaVirtual) {
-                marcoPagina = i;
-                break;
+        int puntero = 0;
+        synchronized (listaMarcosPagina) {
+            while (listaMarcosPagina.isEmpty()) {
+                try {
+                    listaMarcosPagina.wait();
+                } catch (InterruptedException e) {
+                    System.out.println("Error al esperar un marco de página libre: " + e.getMessage());
+                }
             }
-            if (listaMarcosPagina.get(i) == -1) {
-                marcoPagina = i;
-                listaMarcosPagina.set(i, paginaVirtual);
-                break;
+    
+            boolean encontrado = false;
+            int contador = 0; // variable contador para evitar un bucle infinito
+            while (!encontrado && contador < marcosPagina.size()) { // se agrega una condición de salida adicional
+                int marco = marcosPagina.get(puntero);
+                int referencia = tablaPaginas[paginaVirtual][marco] & 1;
+                int modificacion = (tablaPaginas[paginaVirtual][marco] >> 1) & 1;
+                if (referencia == 0 && modificacion == 0) {
+                    marcoPagina = marco;
+                    encontrado = true;
+                } else {
+                    tablaPaginas[paginaVirtual][marco] &= ~(1 << 0); // borrar bit de referencia
+                    if (referencia == 1) {
+                        tablaPaginas[paginaVirtual][marco] |= (1 << 1); // establecer bit de modificación
+                    } else {
+                        puntero = (puntero + 1) % marcosPagina.size(); // avanzar puntero
+                    }
+                    contador++; // se incrementa el contador en cada iteración del bucle
+                }
             }
+    
+            if (!encontrado) {
+                throw new Exception("No hay marcos de página disponibles para reemplazar.");
+            }
+    
+            listaMarcosPagina.remove((Integer) marcoPagina);
         }
+    
         return marcoPagina;
     }
     
-    private void actualizarTablaPaginas(int[][] tablaPaginas,int paginaVirtual, int marcoPagina) {
-        int nc = tablaPaginas[0].length;
-        int fila = paginaVirtual / nc;
-        int columna = paginaVirtual % nc;
-        tablaPaginas[fila][columna] = marcoPagina;
-    }
-    
-    public void actualizarMarcoPagina(int[][] tablaPaginas, ArrayList<Integer> listaMarcosPagina, int paginaVirtual, int marcoPagina) {
-        // Buscar la entrada correspondiente en la tabla de páginas
-        int nf = tablaPaginas.length;
-        int nc = tablaPaginas[0].length;
-        int fila = paginaVirtual / nc;
-        int columna = paginaVirtual % nc;
-        if (fila >= nf) {
-            throw new IllegalArgumentException("Número de página virtual fuera de rango");
+    private void cargarPagina(int marcoPagina, int paginaVirtual) {
+        synchronized (tablaPaginas) {
+            // Actualizar la entrada correspondiente en la tabla de páginas
+            for (int i = 0; i < listaMarcosPagina.size(); i++) {
+                if (listaMarcosPagina.get(i) == marcoPagina) {
+                    synchronized (listaMarcosPagina) {
+                        tablaPaginas[paginaVirtual][i] = marcoPagina;
+                    }
+                }
+            }
         }
-        if (tablaPaginas[fila][columna] == marcoPagina) {
-            // La entrada ya está actualizada, no se necesita hacer nada
-            return;
+    }    
+
+    public static void inicializarTablaPaginas(int[][] tablaPaginas) {
+        for (int i = 0; i < tablaPaginas.length; i++) {
+            for (int j = 0; j < tablaPaginas[i].length; j++) {
+                tablaPaginas[i][j] = -1;
+            }
         }
-        if (tablaPaginas[fila][columna] != -1) {
-            // La entrada está ocupada por otro marco de página, se debe liberar primero
-            int marcoAnterior = tablaPaginas[fila][columna];
-            listaMarcosPagina.set(marcoAnterior, -1);
-        }
-        // Actualizar la entrada en la tabla de páginas
-        tablaPaginas[fila][columna] = marcoPagina;
-        // Actualizar la lista de marcos de página
-        listaMarcosPagina.set(marcoPagina, paginaVirtual);
-    }
-    
-    public void actualizar(Referencia referencia) {
-        int paginaVirtual = referencia.getPaginaVirtual();
-        int marcoPagina = obtenerMarcoPagina(paginaVirtual);
-        if (marcoPagina == -1) {
-            // No hay marcos de página disponibles, se genera una falla de página
-            System.out.println("Falla de página para la referencia " + referencia.toString());
-            return;
-        }
-        actualizarTablaPaginas(tablaPaginas, paginaVirtual, marcoPagina);
-        actualizarMarcoPagina(tablaPaginas, listaMarcosPagina, paginaVirtual, marcoPagina);
     }
 
-    public int obtenerVictima(int paginaVirtual) {
-        int victima = -1;
-        int nf = tablaPaginas.length;
-        int nc = tablaPaginas[0].length;
-        int fila = paginaVirtual / nc;
-        int columna = paginaVirtual % nc;
-        if (fila >= nf) {
-            throw new IllegalArgumentException("Número de página virtual fuera de rango");
+    public static void inicializarListaMarcosPagina(ArrayList<Integer> listaMarcosPagina) {
+        for (int i = 0; i < listaMarcosPagina.size(); i++) {
+            listaMarcosPagina.set(i, i);
         }
-        if (tablaPaginas[fila][columna] != -1) {
-            victima = tablaPaginas[fila][columna];
-        }
-        return victima;
     }
 
 }
-    
+
