@@ -3,9 +3,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 public class Modo2 {
 
@@ -89,51 +86,52 @@ public class Modo2 {
     }
 
     public static void updateTP() {
-        int valorEnvejecimiento = Integer.MAX_VALUE; // Inicializa el valor de envejecimiento con el máximo valor posible
         int victima = -1; // Inicializa la página víctima con un valor imposible
-    
+        int valorEnvejecimiento = Integer.MAX_VALUE; // Inicializa el valor de envejecimiento con el máximo valor posible
+        
         // Sincroniza el acceso a las estructuras de datos compartidas
         synchronized (lock) {
             while (paginasMemoriaVirtual.size() > 0) { // Mientras haya páginas en memoria virtual
-                for (Map.Entry<Integer, Integer> paginasEnvejecimiento : envejecimiento.entrySet()) { // Recorre el mapa de envejecimiento
-                    Integer paginaEnvejecimiento = paginasEnvejecimiento.getKey(); // Obtiene el número de página
-
-                    Integer bits = 10000000; // Inicializa una variable con un valor de bits
-                    String bitsStr = Integer.toString(bits); // Convierte el valor de bits a una cadena de caracteres
-
-                    int decimal = 0;
-                    for (int i = 0; i < bitsStr.length(); i++) { // Convierte la cadena de caracteres a un valor decimal
-                        decimal <<= 1;
-                        if (bitsStr.charAt(i) == '1') {
-                            decimal |= 1;
-                        }
-                    }
-
-                    if (decimal < valorEnvejecimiento) { // Si el valor de envejecimiento es menor que el anterior mínimo encontrado
-                        valorEnvejecimiento = decimal; // Actualiza el valor mínimo
-                        victima = paginaEnvejecimiento; // Actualiza la página víctima
-                    }
-                }
-
-                int paginaNueva = (int) paginasMemoriaVirtual.get(0); // Obtiene la primera página en memoria virtual
-
+                int paginaNueva = paginasMemoriaVirtual.remove(0); // Obtiene la primera página en memoria virtual y la elimina de la lista
                 if (!paginasEnUso.contains(paginaNueva)) { // Si la página no está en uso
                     paginasEnUso.add(paginaNueva); // La marca como en uso
                 }
-
+                
                 int posicionPaginaMenos = paginasMemoriaReal.indexOf(victima); // Obtiene la posición de la página víctima en la memoria real
-
-                paginasMemoriaVirtual.remove(0); // Elimina la página en memoria virtual
-
-                if (paginasMemoriaReal.contains(posicionPaginaMenos))
-                {
+                
+                if (posicionPaginaMenos >= 0) {
                     paginasMemoriaReal.remove(posicionPaginaMenos); // Elimina la página víctima de la memoria real
+                    envejecimiento.remove(victima); // Elimina la entrada correspondiente a la página víctima del mapa de envejecimiento
                 }
-                envejecimiento.remove(victima); // Elimina la entrada correspondiente a la página víctima del mapa de envejecimiento
+                
                 paginasMemoriaReal.add(paginaNueva); // Agrega la nueva página a la memoria real
+                
+                // Actualiza el mapa de envejecimiento
+                for (Map.Entry<Integer, Integer> entry : envejecimiento.entrySet()) {
+                    int paginaEnvejecimiento = entry.getKey();
+                    int valorActual = entry.getValue();
+                    
+                    if (paginaEnvejecimiento == paginaNueva) {
+                        valorActual = 0; // Si la página es nueva, su valor de envejecimiento es 0
+                    } else {
+                        valorActual = valorActual >> 1; // Desplaza los bits del valor de envejecimiento hacia la derecha
+                        if (paginasMemoriaReal.contains(paginaEnvejecimiento)) {
+                            valorActual = valorActual | (1 << 31); // Si la página está en memoria real, pone el bit más significativo a 1
+                        }
+                    }
+                    
+                    envejecimiento.put(paginaEnvejecimiento, valorActual);
+                    
+                    // Busca la página con el menor valor de envejecimiento
+                    if (valorActual < valorEnvejecimiento) {
+                        valorEnvejecimiento = valorActual;
+                        victima = paginaEnvejecimiento;
+                    }
+                }
             }
         }
     }
+    
     
 
     public static void algoritmoEnvejecimiento()

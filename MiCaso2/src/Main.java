@@ -3,28 +3,49 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) throws Exception {
 
-        //Modo 1
+        Scanner sc = new Scanner(System.in);
+        
+        System.out.println("\nInstrucciones:");
+        System.out.println("\nPara correr el modo 1: Modificar el archivo inicial.txt con los parámetros con los cuáles se desee ejecutar el programa. Guardar el archivo y ejecutarlo desde main.");
+        System.out.println("\nPara correr el modo 2: Verificar que en el archivo entrada.txt estén generadas referencias de página (las cuales se puede generar con el modo 1), luego correr el modo 2 desde el programa.");
 
-        List<Integer> parametros = leerArchivoModo1("inicial.txt");
+        while (true) {
+            System.out.println("\nIngrese la opción a ejecutar (1 para Modo 1, 2 para Modo 2, o 0 para salir):");
+            int opcion = sc.nextInt();
+            sc.nextLine(); // Limpiar el buffer de entrada
 
-        Modo1 modo1 = new Modo1(parametros.get(0), parametros.get(1), parametros.get(2), parametros.get(3));
+            if (opcion == 1) {
+                List<Integer> parametros = leerArchivoModo1("inicial.txt");
 
-        modo1.generarReferenciasDePagina();
+                Modo1 modo1 = new Modo1(parametros.get(0), parametros.get(1), parametros.get(2), parametros.get(3));
 
-        //Modo 2
+                modo1.generarReferenciasDePagina();
 
-        List<Integer> paginas = leerArchivoModo2("entrada.txt");
+            } else if (opcion == 2) {
+                List<Integer> parametros = leerArchivoModo1("inicial.txt");
 
-        Modo2 modo2 = new Modo2(parametros.get(4), paginas);
+                List<Integer> paginas = leerArchivoModo2("entrada.txt");
 
-        Integer fallosPagina = modo2.ejecutarModo2();
+                Modo2 modo2 = new Modo2(parametros.get(4), paginas);
 
-        System.out.println("Fallos de página: " + fallosPagina);
-    
+                Integer fallosPagina = modo2.ejecutarModo2();
+
+                System.out.println("\nFallos de página: " + fallosPagina);
+
+            } else if (opcion == 0) {
+                break;
+
+            } else {
+                System.out.println("Opción inválida.");
+            }
+        }
+
+        sc.close();
     }
 
     public static List<Integer> leerArchivoModo1(String filename) throws IOException {
@@ -62,6 +83,4 @@ public class Main {
         reader.close();
         return paginas;
     }
-
-    
 }
