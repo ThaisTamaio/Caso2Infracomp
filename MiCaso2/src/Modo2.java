@@ -28,6 +28,8 @@ public class Modo2 {
 
     public Integer ejecutarModo2()
     {
+        new AlgoritmoEnvejecimiento().start();
+        new Actualizador().start();
         cargaInicialPaginas();
         Actualizador.detenerActualizador();
         AlgoritmoEnvejecimiento.detenerEnvejecimiento();
