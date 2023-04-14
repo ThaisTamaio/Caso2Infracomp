@@ -1,7 +1,11 @@
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class Modo2 {
 
@@ -13,18 +17,19 @@ public class Modo2 {
         this.paginas = paginas;
     }
 
+    private static final Object lock = new Object();
+
     //Los fallos de página serán retornados
 
     private static Integer fallosPagina = 0;
 
     //Listas que indican la ubicación de las páginas en memoria real y virtual
-
-    public static List<Integer> paginasMemoriaReal = new ArrayList<Integer>();
-    public static List<Integer> paginasMemoriaVirtual = new ArrayList<Integer>();
-    public static List<Integer> paginasEnUso = new ArrayList<Integer>();
+    public static List<Integer> paginasMemoriaVirtual = Collections.synchronizedList(new ArrayList<Integer>());
+    public static List<Integer> paginasEnUso = Collections.synchronizedList(new ArrayList<Integer>());
+    public static List<Integer> paginasMemoriaReal = Collections.synchronizedList(new ArrayList<Integer>());
 
     //Tabla necesaria para ejecutar el algortimo de envejecimiento
-    private static Map<Integer, Integer> envejecimiento = new HashMap<Integer, Integer>();
+    private static ConcurrentHashMap<Integer, Integer> envejecimiento = new ConcurrentHashMap<Integer, Integer>();
 
     public Integer ejecutarModo2()
     {
@@ -36,6 +41,7 @@ public class Modo2 {
         return fallosPagina;
     }
 
+
     public void cargaInicialPaginas()
     {
         // Recorre la lista de páginas y las carga en memoria
@@ -45,42 +51,36 @@ public class Modo2 {
             Integer paginaActual = paginas.get(i);
     
             // Sincroniza el acceso a la lista de páginas en memoria real y de páginas en uso
-            synchronized(paginasMemoriaReal)
+            synchronized(lock)
             {
-                synchronized(paginasEnUso)
+                // Si la página actual ya está en memoria real pero no está en uso, la agrega a la lista de páginas en uso
+                if(paginasMemoriaReal.contains(paginaActual) && !paginasEnUso.contains(paginaActual))
                 {
-                    // Si la página actual ya está en memoria real pero no está en uso, la agrega a la lista de páginas en uso
-                    if(paginasMemoriaReal.contains(paginaActual) && !paginasEnUso.contains(paginaActual))
+                    paginasEnUso.add(paginaActual);
+                }
+                // Si la página actual no está en memoria real
+                else if (!paginasMemoriaReal.contains(paginaActual))
+                {
+                    // Si hay espacio en memoria real, la agrega a la lista de páginas en memoria real y de páginas en uso
+                    if (paginasMemoriaReal.size() < MP)
                     {
-                        paginasEnUso.add(paginaActual);
+                        // Si la página actual no está en uso, la agrega a la lista de páginas en uso
+                        if (!paginasEnUso.contains(paginaActual))
+                        {
+                            paginasEnUso.add(paginaActual);
+                        }
+
+                        // Agrega la página actual a la lista de páginas en memoria real
+                        paginasMemoriaReal.add(paginaActual);
                     }
-                    // Si la página actual no está en memoria real
-                    else if (!paginasMemoriaReal.contains(paginaActual))
+                    // Si no hay espacio en memoria real, la agrega a la lista de páginas en memoria virtual
+                    else if (!paginasMemoriaVirtual.contains(paginaActual))
                     {
-                        // Si hay espacio en memoria real, la agrega a la lista de páginas en memoria real y de páginas en uso
-                        if (paginasMemoriaReal.size() < MP)
-                        {
-                            // Si la página actual no está en uso, la agrega a la lista de páginas en uso
-                            if (!paginasEnUso.contains(paginaActual))
-                            {
-                                paginasEnUso.add(paginaActual);
-                            }
-    
-                            // Agrega la página actual a la lista de páginas en memoria real
-                            paginasMemoriaReal.add(paginaActual);
-                        }
-                        // Si no hay espacio en memoria real, la agrega a la lista de páginas en memoria virtual
-                        else if (!paginasMemoriaVirtual.contains(paginaActual))
-                        {
-                            synchronized (paginasMemoriaVirtual)
-                            {
-                                paginasMemoriaVirtual.add(paginaActual);
-                            }
-                        }
-    
-                        // Incrementa el contador de fallos de página
-                        fallosPagina++;
+                        paginasMemoriaVirtual.add(paginaActual);
                     }
+
+                    // Incrementa el contador de fallos de página
+                    fallosPagina++;
                 }
             }
         }
@@ -91,46 +91,40 @@ public class Modo2 {
         int victima = -1; // Inicializa la página víctima con un valor imposible
     
         // Sincroniza el acceso a las estructuras de datos compartidas
-        synchronized (paginasMemoriaReal) {
-            synchronized (paginasEnUso) {
-                synchronized (paginasMemoriaVirtual) {
-                    synchronized (envejecimiento) {
-                        while (paginasMemoriaVirtual.size() > 0) { // Mientras haya páginas en memoria virtual
-                            for (Map.Entry<Integer, Integer> paginasEnvejecimiento : envejecimiento.entrySet()) { // Recorre el mapa de envejecimiento
-                                Integer paginaEnvejecimiento = paginasEnvejecimiento.getKey(); // Obtiene el número de página
-    
-                                Integer bits = 10000000; // Inicializa una variable con un valor de bits
-                                String bitsStr = Integer.toString(bits); // Convierte el valor de bits a una cadena de caracteres
-    
-                                int decimal = 0;
-                                for (int i = 0; i < bitsStr.length(); i++) { // Convierte la cadena de caracteres a un valor decimal
-                                    decimal <<= 1;
-                                    if (bitsStr.charAt(i) == '1') {
-                                        decimal |= 1;
-                                    }
-                                }
-    
-                                if (decimal < valorEnvejecimiento) { // Si el valor de envejecimiento es menor que el anterior mínimo encontrado
-                                    valorEnvejecimiento = decimal; // Actualiza el valor mínimo
-                                    victima = paginaEnvejecimiento; // Actualiza la página víctima
-                                }
-                            }
-    
-                            int paginaNueva = (int) paginasMemoriaVirtual.get(0); // Obtiene la primera página en memoria virtual
-    
-                            if (!paginasEnUso.contains(paginaNueva)) { // Si la página no está en uso
-                                paginasEnUso.add(paginaNueva); // La marca como en uso
-                            }
-    
-                            int posicionPaginaMenos = paginasMemoriaReal.indexOf(victima); // Obtiene la posición de la página víctima en la memoria real
-    
-                            paginasMemoriaVirtual.remove(0); // Elimina la página en memoria virtual
-                            paginasMemoriaReal.remove(posicionPaginaMenos); // Elimina la página víctima de la memoria real
-                            envejecimiento.remove(victima); // Elimina la entrada correspondiente a la página víctima del mapa de envejecimiento
-                            paginasMemoriaReal.add(paginaNueva); // Agrega la nueva página a la memoria real
+        synchronized (lock) {
+            while (paginasMemoriaVirtual.size() > 0) { // Mientras haya páginas en memoria virtual
+                for (Map.Entry<Integer, Integer> paginasEnvejecimiento : envejecimiento.entrySet()) { // Recorre el mapa de envejecimiento
+                    Integer paginaEnvejecimiento = paginasEnvejecimiento.getKey(); // Obtiene el número de página
+
+                    Integer bits = 10000000; // Inicializa una variable con un valor de bits
+                    String bitsStr = Integer.toString(bits); // Convierte el valor de bits a una cadena de caracteres
+
+                    int decimal = 0;
+                    for (int i = 0; i < bitsStr.length(); i++) { // Convierte la cadena de caracteres a un valor decimal
+                        decimal <<= 1;
+                        if (bitsStr.charAt(i) == '1') {
+                            decimal |= 1;
                         }
                     }
+
+                    if (decimal < valorEnvejecimiento) { // Si el valor de envejecimiento es menor que el anterior mínimo encontrado
+                        valorEnvejecimiento = decimal; // Actualiza el valor mínimo
+                        victima = paginaEnvejecimiento; // Actualiza la página víctima
+                    }
                 }
+
+                int paginaNueva = (int) paginasMemoriaVirtual.get(0); // Obtiene la primera página en memoria virtual
+
+                if (!paginasEnUso.contains(paginaNueva)) { // Si la página no está en uso
+                    paginasEnUso.add(paginaNueva); // La marca como en uso
+                }
+
+                int posicionPaginaMenos = paginasMemoriaReal.indexOf(victima); // Obtiene la posición de la página víctima en la memoria real
+
+                paginasMemoriaVirtual.remove(0); // Elimina la página en memoria virtual
+                paginasMemoriaReal.remove(posicionPaginaMenos); // Elimina la página víctima de la memoria real
+                envejecimiento.remove(victima); // Elimina la entrada correspondiente a la página víctima del mapa de envejecimiento
+                paginasMemoriaReal.add(paginaNueva); // Agrega la nueva página a la memoria real
             }
         }
     }

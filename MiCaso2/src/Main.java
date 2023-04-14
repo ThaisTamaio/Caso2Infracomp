@@ -19,12 +19,12 @@ public class Main {
 
         List<Integer> paginas = leerArchivoModo2("entrada.txt");
 
-        Modo2 modo2 = new Modo2(parametros.get(4), paginas);
+        Modo2 modo2 = new Modo2(10000, paginas);
 
         Integer fallosPagina = modo2.ejecutarModo2();
 
         System.out.println("Fallos de página: " + fallosPagina);
-
+    
     }
 
     public static List<Integer> leerArchivoModo1(String filename) throws IOException {
