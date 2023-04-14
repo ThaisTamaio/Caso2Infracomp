@@ -64,6 +64,7 @@ public class Modo2 {
                     // Si hay espacio en memoria real, la agrega a la lista de páginas en memoria real y de páginas en uso
                     if (paginasMemoriaReal.size() < MP)
                     {
+                        fallosPagina++;
                         // Si la página actual no está en uso, la agrega a la lista de páginas en uso
                         if (!paginasEnUso.contains(paginaActual))
                         {
