@@ -77,10 +77,11 @@ public class Modo2 {
                     else if (!paginasMemoriaVirtual.contains(paginaActual))
                     {
                         paginasMemoriaVirtual.add(paginaActual);
+                        fallosPagina++;
                     }
 
                     // Incrementa el contador de fallos de página
-                    fallosPagina++;
+                    
                 }
             }
         }
@@ -122,7 +123,11 @@ public class Modo2 {
                 int posicionPaginaMenos = paginasMemoriaReal.indexOf(victima); // Obtiene la posición de la página víctima en la memoria real
 
                 paginasMemoriaVirtual.remove(0); // Elimina la página en memoria virtual
-                paginasMemoriaReal.remove(posicionPaginaMenos); // Elimina la página víctima de la memoria real
+
+                if (paginasMemoriaReal.contains(posicionPaginaMenos))
+                {
+                    paginasMemoriaReal.remove(posicionPaginaMenos); // Elimina la página víctima de la memoria real
+                }
                 envejecimiento.remove(victima); // Elimina la entrada correspondiente a la página víctima del mapa de envejecimiento
                 paginasMemoriaReal.add(paginaNueva); // Agrega la nueva página a la memoria real
             }

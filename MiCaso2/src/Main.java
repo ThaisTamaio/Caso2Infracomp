@@ -19,7 +19,7 @@ public class Main {
 
         List<Integer> paginas = leerArchivoModo2("entrada.txt");
 
-        Modo2 modo2 = new Modo2(10000, paginas);
+        Modo2 modo2 = new Modo2(parametros.get(4), paginas);
 
         Integer fallosPagina = modo2.ejecutarModo2();
 
