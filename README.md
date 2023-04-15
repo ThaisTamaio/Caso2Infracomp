@@ -1,5 +1,7 @@
 # Caso2Infracomp
 
-Thais Tamaio
-Santiago Tenjo
-Francisco Guzmán
+Implementado por:
+
+Thais Tamaio,
+Santiago Tenjo,
+Francisco Guzmán.
